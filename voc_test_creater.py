@@ -119,14 +119,16 @@ def createVoctestPDFs(data, dir_, ans=False):
     print('\n\n============ Creating PDF files ============')
     tex_filename_list = []  # 出力したファイル名のリスト
     template_file = './tex_template/voc_test_template1.tex' # texテンプレートファイル
-    compile_sh_file = './tex_template/cc.sh'                # コンパイル用シェルスクリプト
+    cpl_sh_file = './tex_template/cc.sh'                # コンパイル用シェルスクリプト
 
     for i in range(0, len(data), 60):
         page_data = data[i:(i+60)]                          # 1ページ分の問題を取り出す
         tex_data = convertWotdData2TexStyle(page_data, ans) # 英単語をtex形式のレコードに変換
         tex_filename = createTeX(tex_data, template_file)   # 英単語テストtexファイル生成
-        compile_cmd = 'sh ' + compile_sh_file + ' ' + tex_filename # コンパイルコマンド
-        subprocess.call(compile_cmd)                        # コンパイル，PDF作成
+        cpl_cmd = 'sh ' + cpl_sh_file + ' ' + tex_filename  # コンパイルコマンド
+        subprocess.call(cpl_cmd)                            # コンパイル，PDF作成
+        mv_cmd = 'mv ' + tex_filename[2:-4] + '.pdf ' + dir_ # ./abcd.texのPDFの移動コマンド
+        subprocess.call(mv_cmd)
         tex_filename_list.append(tex_filename)              # texファイル名を登録
         sleep(1)                                            # ファイル名重複防止用の1秒停止
 

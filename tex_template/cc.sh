@@ -5,4 +5,3 @@ rm $target.tex
 rm $target.aux
 rm $target.dvi
 rm $target.log
-mv $target.pdf ./voctest/
