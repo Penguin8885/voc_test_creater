@@ -28,26 +28,37 @@ def inputWordData(csv_file):
         print(datum)
     return data
 
-## texの文字サイズを修飾をする関数
-def addModifierOfSize(w):
-    if len(w) >= 17:
-        return r'{\scriptsize ' + w + r'}'
-    elif len(w) >= 15:
-        return r'{\small ' + w + r'}'
-    else:
-        return w
-
 ## 単語データからtexスタイルの文章を生成する関数
 def convertWotdData2TexStyle(data, ans):
+
+    ## texの文字サイズを修飾をする関数 (英語用)
+    def addModifierOfSizeE(w):
+        if len(w) >= 17:
+            return r'{\scriptsize ' + w + r'}'
+        elif len(w) >= 15:
+            return r'{\small ' + w + r'}'
+        else:
+            return w
+
+    ## texの文字サイズを修飾をする関数 (日本語用)
+    def addModifierOfSizeJ(w):
+        if len(w) >= 17:
+            return r'{\scriptsize ' + w + r'}'
+        elif len(w) >= 15:
+            return r'{\small ' + w + r'}'
+        else:
+            return w
+
     # 単語を3個のずつ分けてTexの様式の文字列を作成
     line_list = []
 
-    if ans == False: # 問題文生成
+    # 問題文生成
+    if ans == False:
         for i in range(0, len(data)-3, 3):
             # 最初は普通に3個ずつ分割して1行を生成
-            w1 = addModifierOfSize(data[i+0][0])    # 単語データだけ読み出す
-            w2 = addModifierOfSize(data[i+1][0])
-            w3 = addModifierOfSize(data[i+2][0])
+            w1 = addModifierOfSizeE(data[i+0][0])    # 単語データだけ読み出す
+            w2 = addModifierOfSizeE(data[i+1][0])
+            w3 = addModifierOfSizeE(data[i+2][0])
             line = r'    \bf ' + w1 \
                 + r' & \BS & \bf ' + w2 \
                 + r' & \BS & \bf ' + w3 \
@@ -60,17 +71,18 @@ def convertWotdData2TexStyle(data, ans):
             lack = 3 - last_num                             # 足りていない個数
             for j in range(lack):
                 last_word.append(['','',''])                # 空の問題を付け足す
-            w1 = addModifierOfSize(last_word[0][0])
-            w2 = addModifierOfSize(last_word[1][0])
-            w3 = addModifierOfSize(last_word[2][0])
+            w1 = addModifierOfSizeE(last_word[0][0])
+            w2 = addModifierOfSizeE(last_word[1][0])
+            w3 = addModifierOfSizeE(last_word[2][0])
             line = r'    \bf ' + w1 \
                 + r' & \BS & \bf ' + w2 \
                 + r' & \BS & \bf ' + w3 \
                 + r' & \BS\\' + '\n'
             line_list.append(line)
-    else: # 答え生成
-        print('not implemented')
-        return None
+
+    # 答え生成
+    else:
+        sys.exit(-1)
 
     return line_list # 作成したtex形式の文のリストを返却
 
@@ -156,6 +168,7 @@ def main():
 
     pdf_files = createVoctestPDFs(data, './voctest/', ans=False)
     mergePDFs(pdf_files, './voctest/')
+    print('\nComplete')
 
 if __name__ == '__main__':
     main()
