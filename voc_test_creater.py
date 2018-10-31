@@ -63,10 +63,10 @@ def convertWotdData2TexStyle(data):
     return line_list # 作成したtex形式の文のリストを返却
 
 ## texファイルとして出力
-def outputTeX(data):
+def outputTeX(data, tex_template_file):
     now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S') # 現在時刻
-    out_filename = './test' + now + '.tex'              # 出力ファイル名
-    tmp_filename = './template/voc_test_template1.tex'  # テンプレートのファイル名
+    out_filename = './test' + now + '.tex'                  # 出力ファイル名
+    tmp_filename = tex_template_file                        # テンプレートのファイル名
 
     # テンプレートを読み込んで，表のところだけ問題で置換する
     with open(out_filename, mode='w',encoding="utf-8") as outf:
@@ -79,24 +79,35 @@ def outputTeX(data):
                         outf.write(datum)   # 問題データを出力
     return out_filename
 
-def main(csv_filename):
-    data = inputWordData(csv_filename)      # 英単語ファイル読み込み
+def main():
+    #csvファイル列挙 & 選択
+    csv_dir = './voccsv/'
+    for i, csv_file in enumerate(os.listdir(csv_dir)):
+        if csv_file[-4:] == '.csv':
+            print(i, csv_file)
+    csvfile_index = int(input('choose number: '))
+    csv_filename = csv_dir + os.listdir(csv_dir)[csvfile_index]
 
-    print('\n\n============ Input ============')
-    top_index = int(input("問題先頭番号 : "))
+    data = inputWordData(csv_filename) # 選択された英単語ファイル読み込み
+
+    print('\n\n============ Input test info ============')
+    top_index = int(input("単語先頭番号 : "))
     num       = int(input("問題数       : "))
     data = data[top_index:(top_index+num)]      # 英単語を選択
     # random.shuffle(data)                        # シャッフル
 
     print('\n\n============ Create PDF files ============')
     out_filename_list = []  # 出力したファイル名のリスト
+    template_file = './tex_template/voc_test_template1.tex' # texテンプレートファイル
+    compile_sh_file = './tex_template/cc.sh'                # コンパイル用シェルスクリプト
     for i in range(0, len(data), 60):
-        page_data = data[i:(i+60)]                      # 1ページ分の問題を取り出す
-        tex_data = convertWotdData2TexStyle(page_data)  # 英単語をtex形式のレコードに変換
-        out_filename = outputTeX(tex_data)              # 英単語テストのtexファイルを生成
-        rc = subprocess.call('sh ./tex_template/cc.sh ' + out_filename) # コンパイル，PDF作成
-        out_filename_list.append(out_filename)          # texファイル名を登録
-        sleep(1)                                        # ファイル名が重複しないように1秒停止
+        page_data = data[i:(i+60)]                        # 1ページ分の問題を取り出す
+        tex_data = convertWotdData2TexStyle(page_data)    # 英単語をtex形式のレコードに変換
+        out_filename = outputTeX(tex_data, template_file) # 英単語テストのtexファイルを生成
+        compile_cmd = 'sh ' + compile_sh_file + ' ' + out_filename # コンパイルコマンド
+        rc = subprocess.call(compile_cmd)                 # コンパイル，PDF作成
+        out_filename_list.append(out_filename)            # texファイル名を登録
+        sleep(1)                                          # ファイル名が重複しないように1秒停止
 
     # 最後にファイル名を出力
     print('\n\n============ Created files ============')
@@ -104,4 +115,4 @@ def main(csv_filename):
         print(name)
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main()
