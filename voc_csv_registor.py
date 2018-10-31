@@ -2,16 +2,13 @@ import sys, os
 import csv
 
 if __name__ == '__main__':
-    #csvファイル確認
-    csv_file = sys.argv[1]
-    if os.path.exists(csv_file) is False:
-        if os.path.exitts('./' + csv_file) is False:
-            print(sys.argv[1], 'does not exist')
-            sys.exit(0)
-        else:
-            csv_file = './' + csv_file
-    else:
-        pass
+    #csvファイル列挙 & 選択
+    csv_dir = './voccsv/'
+    for i, csv_file in enumerate(os.listdir(csv_dir)):
+        if csv_file[-4:] == '.csv':
+            print(i, csv_file)
+    csvfile_index = int(input('choose number: '))
+    csv_file = csv_dir + os.listdir(csv_dir)[csvfile_index]
 
     #csv読み込み
     data = []
@@ -43,9 +40,6 @@ if __name__ == '__main__':
 
     #結合
     data.extend(indata)
-
-    #ソート
-    #data.sort(key=lambda x: x[0])
 
     #csv書き込み
     with open(csv_file, 'w') as f:

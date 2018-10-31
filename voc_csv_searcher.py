@@ -2,29 +2,12 @@ import sys, os
 import csv
 
 if __name__ == '__main__':
-    # #csvファイル確認
-    # csv_file = sys.argv[1]
-    # if os.path.exists(csv_file) is False:
-    #     if os.path.exitts('./' + csv_file) is False:
-    #         print(sys.argv[1], 'does not exist')
-    #         sys.exit(0)
-    #     else:
-    #         csv_file = './' + csv_file
-    # else:
-    #     pass
-
-    # #csv読み込み
-    # data = []
-    # with open(csv_file) as f:
-    #     reader = csv.reader(f)
-    #     for i, row in enumerate(reader):
-    #         data.append(row)
-    #         print(i+1, row)
-
+    # ファイルをすべて読み込み
     data = []
-    for csv_file in os.listdir('./'):
+    for csv_file in os.listdir('./voccsv/'):
         if csv_file[-4:] == '.csv':
             print(csv_file)
+
             #csv読み込み
             with open(csv_file) as f:
                 reader = csv.reader(f)
@@ -33,8 +16,7 @@ if __name__ == '__main__':
                     print(i+1, row)
     print('total', len(data), 'words')
 
-
-
+    # 検索単語入力
     while True:
         print('---- input word ----')
         str_ = input()
