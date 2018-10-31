@@ -1,9 +1,13 @@
 \documentclass[a4paper, 12pt, landscape]{jarticle}
 \usepackage[top=10truemm,bottom=10truemm,left=10truemm,right=10truemm]{geometry}
 \usepackage[dvipdfmx]{graphicx}
+\usepackage{color}
 
 \pagestyle{empty}                 % ページ番号を消す
-\newcommand{\BS}{\bf (\hspace{5.3em})}
+\newcommand*{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\vm}{\hspace{-1em}}
+\newcommand{\BL}{{\bf (}}
+\newcommand{\BR}{{\bf )}}
 \renewcommand{\arraystretch}{1.2} % 表の縦の間隔を広くする
 \setlength{\arrayrulewidth}{1pt}  % 太い罫線を設定
 
@@ -14,9 +18,9 @@
 \subsubsection*{問．次の英単語の意味を答えよ} \vspace{-1em}
 \begin{table}[!h]
   \scalebox{1.2}{
-  \begin{tabular}{@{\hspace{1em}} p{8em} p{7em} @{\hspace{1em}}|
-                  @{\hspace{2em}} p{8em} p{7em} @{\hspace{1em}}|
-                  @{\hspace{2em}} p{8em} p{7em} }
+  \begin{tabular}{@{\hspace{0.9em}} p{8em} p{0.5em} p{4.1em} p{0.5em} @{\hspace{0.9em}}|
+                  @{\hspace{2em}}   p{8em} p{0.5em} p{4.1em} p{0.5em} @{\hspace{0.9em}}|
+                  @{\hspace{2em}}   p{8em} p{0.5em} p{4.1em} p{0.5em} }
     %%%
   \end{tabular}
   }

@@ -42,47 +42,58 @@ def convertWotdData2TexStyle(data, ans):
 
     ## texの文字サイズを修飾をする関数 (日本語用)
     def addModifierOfSizeJ(w):
-        if len(w) >= 17:
-            return r'{\scriptsize ' + w + r'}'
-        elif len(w) >= 15:
-            return r'{\small ' + w + r'}'
+        if len(w) >= 16:
+            return r'\scalebox{0.6}[0.8]{\scriptsize ' + w[:12] + r'}}\par' + \
+                   r'\vspace{-0.8em}\blue{' + \
+                   r'\scalebox{0.6}[0.8]{\scriptsize ' + w[12:21] + r'}\vspace{-0.9em}'
+        if len(w) >= 12:
+            return r'\scalebox{0.7}[0.8]{\scriptsize ' + w[:9] + r'}}\par' + \
+                   r'\vspace{-0.8em}\blue{' + \
+                   r'\scalebox{0.7}[0.8]{\scriptsize ' + w[9:] + r'}\vspace{-0.9em}'
+        elif len(w) >= 8:
+            return r'\scalebox{0.7}[1]{\scriptsize ' + w + r'}'
         else:
-            return w
+            return r'{\scriptsize ' + w + r'}'
 
     # 単語を3個のずつ分けてTexの様式の文字列を作成
     line_list = []
 
     # 問題文生成
-    if ans == False:
-        for i in range(0, len(data)-3, 3):
-            # 最初は普通に3個ずつ分割して1行を生成
-            w1 = addModifierOfSizeE(data[i+0][0])    # 単語データだけ読み出す
-            w2 = addModifierOfSizeE(data[i+1][0])
-            w3 = addModifierOfSizeE(data[i+2][0])
-            line = r'    \bf ' + w1 \
-                + r' & \BS & \bf ' + w2 \
-                + r' & \BS & \bf ' + w3 \
-                + r' & \BS\\' + '\n'
-            line_list.append(line)
+    for i in range(0, len(data)-3, 3):
+        # 最初は普通に3個ずつ分割して1行を生成
+        w1 = addModifierOfSizeE(data[i+0][0])   # 英単語
+        w2 = addModifierOfSizeE(data[i+1][0])
+        w3 = addModifierOfSizeE(data[i+2][0])
+        if ans == False:
+            a1, a2, a3 = '', '', '' # 解答なしの場合は空白を答えに挿入
         else:
-            # 最後は3個の足りない分を補って1行を生成
-            last_num = len(data) % 3 if len(data) % 3 != 0 else 3 # 最後のデータの個数
-            last_word = data[-last_num:]                    # 最後のデータ
-            lack = 3 - last_num                             # 足りていない個数
-            for j in range(lack):
-                last_word.append(['','',''])                # 空の問題を付け足す
-            w1 = addModifierOfSizeE(last_word[0][0])
-            w2 = addModifierOfSizeE(last_word[1][0])
-            w3 = addModifierOfSizeE(last_word[2][0])
-            line = r'    \bf ' + w1 \
-                + r' & \BS & \bf ' + w2 \
-                + r' & \BS & \bf ' + w3 \
-                + r' & \BS\\' + '\n'
-            line_list.append(line)
-
-    # 答え生成
+            a1 = addModifierOfSizeJ(data[i+0][1])   # 日本語
+            a2 = addModifierOfSizeJ(data[i+1][1])
+            a3 = addModifierOfSizeJ(data[i+2][1])
+        line = r'    \bf ' + w1 + r' & \BL & \blue{\vm\bf ' + a1 + r'} & \BR &'\
+                + r' \bf ' + w2 + r' & \BL & \blue{\vm\bf ' + a2 + r'} & \BR &'\
+                + r' \bf ' + w3 + r' & \BL & \blue{\vm\bf ' + a3 + r'} & \BR\\' + '\n'
+        line_list.append(line)
     else:
-        sys.exit(-1)
+        # 最後は3個の足りない分を補って1行を生成
+        last_num = len(data) % 3 if len(data) % 3 != 0 else 3 # 最後のデータの個数
+        last_word = data[-last_num:]                    # 最後のデータ
+        lack = 3 - last_num                             # 足りていない個数
+        for j in range(lack):
+            last_word.append(['','',''])                # 空の問題を付け足す
+        w1 = addModifierOfSizeE(last_word[0][0])        # 英単語
+        w2 = addModifierOfSizeE(last_word[1][0])
+        w3 = addModifierOfSizeE(last_word[2][0])
+        if ans == False:
+            a1, a2, a3 = '', '', '' # 解答なしの場合は空白を答えに挿入
+        else:
+            a1 = addModifierOfSizeJ(last_word[0][1])    # 日本語
+            a2 = addModifierOfSizeJ(last_word[1][1])
+            a3 = addModifierOfSizeJ(last_word[2][1])
+        line = r'    \bf ' + w1 + r' & \BL & \blue{\vm\bf ' + a1 + r'} & \BR &'\
+                + r' \bf ' + w2 + r' & \BL & \blue{\vm\bf ' + a2 + r'} & \BR &'\
+                + r' \bf ' + w3 + r' & \BL & \blue{\vm\bf ' + a3 + r'} & \BR\\' + '\n'
+        line_list.append(line)
 
     return line_list # 作成したtex形式の文のリストを返却
 
@@ -129,13 +140,15 @@ def createVoctestPDFs(data, dir_, ans=False):
     return pdf_filename_list # pdfファイル名のリストを返却
 
 ## pdf結合のための関数
-def mergePDFs(pdf_filename_list, dir_):
+def mergePDFs(pdf_filename_list, dir_, ans=False):
     if len(pdf_filename_list) == 1:
         return  # マージする必要性が無いときはそのまま終了
 
-    now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')     # 現在時刻
-    pdf_newname = dir_ + 'test' + now + '-merged.pdf'    # pdfファイル名
-    # pdf_newname = dir_ + 'test' + now + 'ans-merged.pdf' # pdfファイル名(答え)
+    now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')  # 現在時刻
+    if ans == False:
+        pdf_newname = dir_ + 'test' + now + '-merged.pdf'    # pdfファイル名
+    else:
+        pdf_newname = dir_ + 'test' + now + 'ans-merged.pdf' # pdfファイル名(答え)
 
     try:
         from PyPDF2 import PdfFileMerger # ここでしか使用しないため，ここでインポート
@@ -157,18 +170,26 @@ def mergePDFs(pdf_filename_list, dir_):
 
 
 def main():
+    # CSV選択画面
     csv_filename = printCsvSelectionScreen('./voccsv/') # CSV選択画面表示
     data = inputWordData(csv_filename)                  # 選択された英単語ファイル読み込み
 
+    # 問題の情報を入力
     print('\nInput test info')
     top_index = int(input("単語先頭番号 : "))
     num       = int(input("問題数       : "))
     data = data[top_index:(top_index+num)]      # 英単語を選択
     # random.shuffle(data)                        # シャッフル
 
-    pdf_files = createVoctestPDFs(data, './voctest/', ans=False)
+    # 問題を生成
+    pdf_files = createVoctestPDFs(data, './voctest/')
     mergePDFs(pdf_files, './voctest/')
-    print('\nComplete')
+
+    # 答えを生成
+    pdf_files = createVoctestPDFs(data, './voctest/', ans=True)
+    mergePDFs(pdf_files, './voctest/', ans=True)
+
+    print('\n\nComplete')
 
 if __name__ == '__main__':
     main()
