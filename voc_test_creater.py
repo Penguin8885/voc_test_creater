@@ -91,14 +91,22 @@ def convertWotdData2TexStyle(data, ans):
             a2 = addModifierOfSizeJ(last_word[1][1])
             a3 = addModifierOfSizeJ(last_word[2][1])
         line = r'    \bf ' + w1 + r' & \BL & \blue{\vm\bf ' + a1 + r'} & \BR &'\
-                + r' \bf ' + w2 + r' & \BL & \blue{\vm\bf ' + a2 + r'} & \BR &'\
-                + r' \bf ' + w3 + r' & \BL & \blue{\vm\bf ' + a3 + r'} & \BR\\' + '\n'
+                + r' \bf ' + w2 + r' & '\
+                    + (r'\BL' if last_num>=2 else '')\
+                    + r' & \blue{\vm\bf ' + a2 + r'} & '\
+                    + (r'\BR' if last_num>=2 else '')\
+                    + ' &'\
+                + r' \bf ' + w3 + r' & '\
+                    + (r'\BL' if last_num>=3 else '')\
+                    + r' & \blue{\vm\bf ' + a3 + r'} & '\
+                    + (r'\BR' if last_num>=3 else '')\
+                    + r'\\' + '\n'
         line_list.append(line)
 
     return line_list # 作成したtex形式の文のリストを返却
 
 ## 単語データをtexファイルとして出力するための関数
-def createTeX(data, tex_template_file):
+def createTeX(data, tex_template_file, no):
     now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S') # 現在時刻
     out_filename = './test' + now + '.tex'                  # 出力ファイル名
     tmp_filename = tex_template_file                        # テンプレートのファイル名
@@ -107,24 +115,29 @@ def createTeX(data, tex_template_file):
     with open(out_filename, mode='w', encoding="utf-8") as outf:
         with open(tmp_filename, mode='r', encoding="utf-8") as tmpf:
             for line in tmpf:
-                if not r'%%%' in line:      # テンプレートの表部分の目印が'%%%'となっています
-                    outf.write(line)        # テンプレートの行をそのまま出力
-                else:
-                    for datum in data[:20]:
+                if r'%%%' in line:        # テンプレートの表部分の目印が'%%%'となっています
+                    for datum in data[:20]: # max20行分
                         outf.write(datum)   # 問題データを出力
+                elif r'%no' in line:      # テンプレートのページ番号の目印が'%no'となっています
+                    outf.write(str(no))     # ページ番号を出力
+                else:                     # テンプレートの通常の部分
+                    outf.write(line)        # テンプレートの行をそのまま出力
+
     return out_filename
 
 ## テストのPDFを生成
 def createVoctestPDFs(data, dir_, ans=False):
-    print('\n\n============ Creating PDF files ============')
+    print('\n\n============ Create PDF files %s============'
+                                                % ('(Answer) ' if ans==True else ''))
     tex_filename_list = []  # 出力したファイル名のリスト
     template_file = './tex_template/voc_test_template1.tex' # texテンプレートファイル
-    cpl_sh_file = './tex_template/cc.sh'                # コンパイル用シェルスクリプト
+    cpl_sh_file = './tex_template/cc.sh'                    # コンパイル用シェルスクリプト
 
-    for i in range(0, len(data), 60):
-        page_data = data[i:(i+60)]                          # 1ページ分の問題を取り出す
+    # 50問ずつの問題を作成
+    for no, i in enumerate(range(0, len(data), 50)):
+        page_data = data[i:(i+50)]                          # 1ページ分の問題を取り出す
         tex_data = convertWotdData2TexStyle(page_data, ans) # 英単語をtex形式のレコードに変換
-        tex_filename = createTeX(tex_data, template_file)   # 英単語テストtexファイル生成
+        tex_filename = createTeX(tex_data, template_file, no+1) # 英単語テストtexファイル生成
         cpl_cmd = 'sh ' + cpl_sh_file + ' ' + tex_filename  # コンパイルコマンド
         subprocess.call(cpl_cmd)                            # コンパイル，PDF作成
         mv_cmd = 'mv ' + tex_filename[2:-4] + '.pdf ' + dir_ # ./abcd.texのPDFの移動コマンド
@@ -162,36 +175,45 @@ def mergePDFs(pdf_filename_list, dir_, ans=False):
 
         for pdf_filename in pdf_filename_list:
             subprocess.call('rm ' + pdf_filename) # 不必要なファイルを削除
-        print('\nMerged -> ' + pdf_newname)         # 結果を表示
+        print('OK: \nMerged -> ' + pdf_newname)         # 結果を表示
 
     except:
         # 結合に失敗したとき，全PDFを表示して終了
-        print('Sorry, cloudn\'t merge')
+        print('ERROR: Sorry, cloudn\'t merge')
         for file_ in pdf_filename_list:
             print(file_)
 
 
-def main():
+def main(csv_filename=None, top_index=None, num=None, outdir='./voctest/'):
     # CSV選択画面
-    csv_filename = printCsvSelectionScreen('./voccsv/') # CSV選択画面表示
-    data = inputWordData(csv_filename)                  # 選択された英単語ファイル読み込み
+    if csv_filename == None:
+        csv_filename = printCsvSelectionScreen('./voccsv/') # CSV選択画面表示
+    data = inputWordData(csv_filename) # 選択された英単語ファイル読み込み
 
     # 問題の情報を入力
-    print('\nInput test info')
-    top_index = int(input("単語先頭番号 : "))
-    num       = int(input("問題数       : "))
-    data = data[top_index:(top_index+num)]      # 英単語を選択
-    # random.shuffle(data)                        # シャッフル
+    if top_index == None or num == None:
+        print('\nInput test info')
+        top_index = int(input("単語先頭番号 : "))
+        num       = int(input("問題数       : "))
+    data = data[top_index:(top_index+num)]  # 英単語を選択
+    # random.shuffle(data)                  # シャッフル
 
     # 問題を生成
-    pdf_files = createVoctestPDFs(data, './voctest/')
-    mergePDFs(pdf_files, './voctest/')
+    pdf_files = createVoctestPDFs(data, outdir)
+    mergePDFs(pdf_files, outdir)
 
     # 答えを生成
-    pdf_files = createVoctestPDFs(data, './voctest/', ans=True)
-    mergePDFs(pdf_files, './voctest/', ans=True)
+    pdf_files = createVoctestPDFs(data, outdir, ans=True)
+    mergePDFs(pdf_files, outdir, ans=True)
 
     print('\n\nComplete')
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 3:
+        main(
+            csv_filename=sys.argv[1],   # ファイル名
+            top_index=int(sys.argv[2]), # 先頭の単語番号
+            num=int(sys.argv[3])        # 問題数
+        )
+    else:
+        main()
