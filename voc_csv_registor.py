@@ -1,4 +1,5 @@
 import sys, os
+import copy
 import csv
 
 if __name__ == '__main__':
@@ -63,7 +64,10 @@ if __name__ == '__main__':
                     i += 1  # 補完しなくて良ければ次に行く
                     continue
 
-                print(data[i], '\t\t(input about coulmn', column+1, ')')
+                c_datum = copy.deepcopy(data[i])
+                c_datum[column] = '???'
+                print(c_datum)
+
                 str_ = input()
                 if str_ == 'exit':
                     break_ = True

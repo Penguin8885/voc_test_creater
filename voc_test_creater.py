@@ -24,8 +24,8 @@ def inputWordData(csv_file):
         reader = csv.reader(f)
         for row in reader:
             data.append(row) # レコードを取り出して登録
-    for datum in data:
-        print(datum)
+    for i, datum in enumerate(data):
+        print(i, datum)
     return data
 
 ## 単語データからtexスタイルの文章を生成する関数
@@ -156,14 +156,15 @@ def createVoctestPDFs(data, dir_, ans=False):
 
 ## pdf結合のための関数
 def mergePDFs(pdf_filename_list, dir_, ans=False):
-    if len(pdf_filename_list) == 1:
-        return  # マージする必要性が無いときはそのまま終了
-
     now = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')  # 現在時刻
     if ans == False:
         pdf_newname = dir_ + 'test' + now + '-merged.pdf'    # pdfファイル名
     else:
         pdf_newname = dir_ + 'test' + now + 'ans-merged.pdf' # pdfファイル名(答え)
+
+    if len(pdf_filename_list) == 1:
+        os.rename(pdf_filename_list[0], pdf_newname)
+        return  # マージする必要性が無いときはリネームしてそのまま終了
 
     try:
         from PyPDF2 import PdfFileMerger # ここでしか使用しないため，ここでインポート
@@ -196,7 +197,15 @@ def main(csv_filename=None, top_index=None, num=None, outdir='./voctest/'):
         top_index = int(input("単語先頭番号 : "))
         num       = int(input("問題数       : "))
     data = data[top_index:(top_index+num)]  # 英単語を選択
-    # random.shuffle(data)                  # シャッフル
+
+    # シャッフルするか確認
+    shuffle_a = input("シャッフルしますか？(y/n) : ")
+    if shuffle_a == 'y':
+        random.shuffle(data)                  # シャッフル
+    elif shuffle_a == 'n':
+        pass
+    else:
+        raise Exception('input is not proper')
 
     # 問題を生成
     pdf_files = createVoctestPDFs(data, outdir)

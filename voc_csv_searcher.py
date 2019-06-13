@@ -12,8 +12,8 @@ if __name__ == '__main__':
             with open(csv_dir + csv_file) as f:
                 reader = csv.reader(f)
                 for i, row in enumerate(reader):
-                    data.append(row)
-                    print(i+1, row)
+                    data.append((row, csv_file))
+                    # print(i+1, row)
     print('total', len(data), 'words')
 
     # 検索単語入力
@@ -23,5 +23,5 @@ if __name__ == '__main__':
         if str_ == 'exit':
             break
         for datum in data:
-            if str_ == datum[0]:
+            if str_ == datum[0][0]:
                 print(datum)
